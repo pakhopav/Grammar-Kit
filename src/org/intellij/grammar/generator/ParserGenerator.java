@@ -1591,6 +1591,7 @@ public class ParserGenerator {
     }
     if (G.generateTokenTypes) {
       newLine();
+      List<String> regexpTokens= new ArrayList<>();
       String exactType = null;
       Map<String, String> sortedTokens = new TreeMap<>();
       String tokenCreateCall;
@@ -1605,6 +1606,7 @@ public class ParserGenerator {
         String tokenName = ObjectUtils.chooseNotNull(mySimpleTokens.get(tokenText), tokenText);
         if (isIgnoredWhitespaceToken(tokenName, tokenText)) continue;
         sortedTokens.put(getElementType(tokenName), isRegexpToken(tokenText) ? tokenName : tokenText);
+        if(isRegexpToken(tokenText))regexpTokens.add(tokenName);
       }
       for (String tokenType : sortedTokens.keySet()) {
         String callFix = tokenCreateCall.equals("new IElementType") ? ", null" : "";
@@ -1612,6 +1614,26 @@ public class ParserGenerator {
         out(fieldType + " " + tokenType + " = " + tokenCreateCall + "(\"" + StringUtil.escapeStringCharacters(tokenString) + "\""+callFix+");");
       }
       generateTokenSets();
+      newLine();
+      out("class TokenMetaInfo {");
+      newLine();
+      out("public static boolean isRegexpToken(IElementType token) {");
+      newLine();
+      out("String debugName = token.toString();");
+      for(String name : regexpTokens){
+        out("if (debugName.equals(\"" +name+"\")) {");
+        newLine();
+        out("return true;");
+        newLine();
+        out("}");
+      }
+      newLine();
+      out("return false;");
+      newLine();
+      out("}");
+      newLine();
+      out("}");
+
     }
     if (G.generatePsi && G.generatePsiClassesMap) {
       newLine();
